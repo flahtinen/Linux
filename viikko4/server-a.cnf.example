@@ -1,0 +1,5 @@
+# MariaDB-palvelimen A asetukset
+[mysqld]
+server_id = 1
+log_bin = /var/log/mysql/mariadb-bin
+binlog_format = ROW

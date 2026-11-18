@@ -1,0 +1,5 @@
+# MariaDB-palvelimen B asetukset
+[mysqld]
+server_id = 2
+relay_log = /var/log/mysql/mariadb-relay-bin
+read_only = ON
