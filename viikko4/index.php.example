@@ -1,0 +1,85 @@
+
+<?php
+$mysqli = new mysqli(
+    "localhost",
+    "counter_reader",
+    "SALASANA",
+    "visitors"
+);
+
+if ($mysqli->connect_error) {
+    http_response_code(500);
+    die("Database connection failed.");
+}
+
+$result = $mysqli->query("SELECT hits FROM counter WHERE id = 1");
+
+if (!$result) {
+    die("Could not read visitor counter.");
+}
+
+$row = $result->fetch_assoc();
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Week 4 - Read-only Replica</title>
+</head>
+<body>
+    <h1>Server B - Visitor Counter</h1>
+
+    <h2>Visitors: <?= htmlspecialchars((string)$row['hits']) ?></h2>
+
+    <h3>READ-ONLY REPLICA</h3>
+    <p>This page displays data from Server B's local MariaDB database.</p>
+    <p>Database changes are replicated continuously from Server A.</p>
+    <p>Loading this page does not modify the database.</p>
+
+    <p><a href="http://86.50.21.205/viikko2/">Visit Server A</a></p>
+
+<h2>Viikko 4</h2>
+
+<p>Tässä tehtävässä tein toisen palvelimen, jonka nimi on B. Minulla on nyt kaksi palvelinta, A ja B.</p>
+
+<h3>Tietokanta</h3>
+
+<p>Laitoin tietokannan kopioitumaan palvelimelta A palvelimelle B. Näin B:llä on samat tiedot kuin A:lla.</p>
+
+<p>Tein myös B:lle oman kävijälaskurin, joka näyttää kävijöiden määrän B:n tietokannasta. Se ei lisää kävijöitä itse, vaan näyttää saman määrän kuin A:n tietokannassa.</p>
+
+<h3>Varmuuskopiot</h3>
+
+<p>Tein A-palvelimelle skriptin, joka ottaa verkkosivuista varmuuskopion kerran tunnissa. Varmuuskopio siirtyy automaattisesti B-palvelimelle.</p>
+
+<p>B:llä varmuuskopiot tallentuvat kansioon /var/backups/website/.</p>
+
+<p>Laitoin varmuuskopioinnin toimimaan automaattisesti cronilla.</p>
+
+<h3>Testaaminen</h3>
+
+<p>Kokeilin varmuuskopiointia itse ja se toimi. B-palvelimelle tuli kaksi varmuuskopiota:</p>
+
+<ul>
+<li>website-20261118-204856.tar.gz</li>
+<li>website-20261118-210001.tar.gz</li>
+</ul>
+
+<p>Kokeilin myös palauttaa tiedostoja varmuuskopiosta. Ne palautuivat oikein testikansioon.</p>
+
+<p>Tarkistin myös lokitiedostosta, että varmuuskopiointi oli onnistunut.</p>
+
+<h3>Linkit</h3>
+
+<p>A-palvelin: <a href="http://86.50.21.205/viikko2/">http://86.50.21.205/viikko2/</a></p>
+
+<p>B-palvelin: <a href="http://195.148.20.250/viikko4/">http://195.148.20.250/viikko4/</a></p>
+
+
+</body>
+</html>
+
+<?php
+$mysqli->close();
+?>
