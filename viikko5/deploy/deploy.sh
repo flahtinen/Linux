@@ -7,8 +7,8 @@ APP_DIR="/opt/viikko5/app"
 VENV_DIR="/opt/viikko5/venv"
 
 mkdir -p "$REPO_DIR" "$APP_DIR/viikko5"
-rsync -a --no-g --no-o --no-t --delete --exclude '.git' ./ "$REPO_DIR/"
-rsync -a --no-g --no-o --no-t --delete "$REPO_DIR/viikko5/" "$APP_DIR/viikko5/"
+rsync -a --no-g --no-o --no-t --no-p --delete --exclude '.git' ./ "$REPO_DIR/"
+rsync -a --no-g --no-o --no-t --no-p --delete "$REPO_DIR/viikko5/" "$APP_DIR/viikko5/"
 
 if [ ! -x "$VENV_DIR/bin/python" ]; then
     python3 -m venv "$VENV_DIR"
