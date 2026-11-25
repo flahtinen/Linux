@@ -8,7 +8,7 @@ VENV_DIR="/opt/viikko5/venv"
 
 mkdir -p "$REPO_DIR" "$APP_DIR/viikko5"
 rsync -a --no-g --no-o --delete --exclude '.git' ./ "$REPO_DIR/"
-rsync -a --delete "$REPO_DIR/viikko5/" "$APP_DIR/viikko5/"
+rsync -a --no-g --no-o --delete "$REPO_DIR/viikko5/" "$APP_DIR/viikko5/"
 
 if [ ! -x "$VENV_DIR/bin/python" ]; then
     python3 -m venv "$VENV_DIR"
