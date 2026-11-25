@@ -29,7 +29,10 @@ def test_chat_endpoint_saves_and_replies():
 
     with patch("viikko5.app.save_message", side_effect=fake_save), \
          patch("viikko5.app.fetch_history", side_effect=fake_history), \
-         patch("viikko5.app.ask_ollama", return_value="Hei! Miten voin auttaa?"):
+         patch(
+             "viikko5.app.ask_ollama",
+             return_value="Hei! Miten voin auttaa?",
+         ):
         client = app.test_client()
         resp = client.post("/viikko5/api/chat", json={"message": "Moi"})
         assert resp.status_code == 200

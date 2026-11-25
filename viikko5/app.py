@@ -5,7 +5,9 @@ import pymysql
 import requests
 
 app = Flask(__name__, static_url_path="/viikko5/static")
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-in-prod")
+app.secret_key = os.environ.get(
+    "FLASK_SECRET_KEY", "dev-secret-change-in-prod"
+)
 
 
 def get_db_connection():
@@ -46,7 +48,8 @@ def save_message(session_id, role, content):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO messages (session_id, role, content) VALUES (%s, %s, %s)",
+                "INSERT INTO messages (session_id, role, content) "
+                "VALUES (%s, %s, %s)",
                 (session_id, role, content),
             )
     finally:
@@ -58,10 +61,15 @@ def ask_ollama(messages):
     model = os.environ.get("OLLAMA_MODEL", "llama3.2:1b")
     payload = {
         "model": model,
-        "messages": [{"role": m["role"], "content": m["content"]} for m in messages],
+        "messages": [
+            {"role": m["role"], "content": m["content"]}
+            for m in messages
+        ],
         "stream": False,
     }
-    resp = requests.post(f"{ollama_url}/api/chat", json=payload, timeout=120)
+    resp = requests.post(
+        f"{ollama_url}/api/chat", json=payload, timeout=120
+    )
     resp.raise_for_status()
     data = resp.json()
     return data.get("message", {}).get("content", "").strip()
