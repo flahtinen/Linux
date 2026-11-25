@@ -1,4 +1,4 @@
-﻿[Unit]
+[Unit]
 Description=Viikko 5 Local LLM Chat (Gunicorn)
 After=network.target mariadb.service ollama.service
 

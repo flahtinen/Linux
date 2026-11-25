@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS messages (
     id INT AUTO_INCREMENT PRIMARY KEY,
     session_id VARCHAR(64) NOT NULL,
     role ENUM('user', 'assistant') NOT NULL,
