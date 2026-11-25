@@ -1,0 +1,56 @@
+﻿name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r viikko5/requirements.txt
+
+      - name: Run linter
+        run: |
+          flake8 viikko5
+
+      - name: Run unit and integration tests
+        env:
+          PYTHONPATH: .
+        run: |
+          pytest -v viikko5/tests
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          printf "%s\n" "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+      - name: Transfer repository and run deployment
+        run: |
+          ssh -i ~/.ssh/id_ed25519 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}" "mkdir -p /tmp/viikko5-release"
+          scp -i ~/.ssh/id_ed25519 -r . "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/viikko5-release/"
+          ssh -i ~/.ssh/id_ed25519 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}" "cd /tmp/viikko5-release && chmod +x viikko5/deploy/deploy.sh && ./viikko5/deploy/deploy.sh ${{ github.sha }}"

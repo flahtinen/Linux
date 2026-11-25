@@ -1,0 +1,78 @@
+﻿body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f4f6f9;
+  color: #1f2937;
+  margin: 0;
+  padding: 24px;
+}
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.card {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+.nav-links a {
+  margin-right: 16px;
+  color: #0f52ba;
+  text-decoration: none;
+  font-weight: 600;
+}
+.messages {
+  max-height: 360px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+.msg {
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+.msg-user {
+  background: #e0ecff;
+}
+.msg-assistant {
+  background: #eef2f6;
+}
+.msg p {
+  margin: 4px 0 0 0;
+  white-space: pre-wrap;
+}
+.chat-form {
+  display: flex;
+  gap: 8px;
+}
+.chat-form input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+}
+.chat-form button {
+  padding: 10px 18px;
+  background: #0f52ba;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.status {
+  color: #4b5563;
+  min-height: 20px;
+}
+pre {
+  background: #111827;
+  color: #e5e7eb;
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 0.85rem;
+}

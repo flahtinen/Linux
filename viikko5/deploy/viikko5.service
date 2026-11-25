@@ -1,0 +1,16 @@
+﻿[Unit]
+Description=Viikko 5 Local LLM Chat (Gunicorn)
+After=network.target mariadb.service ollama.service
+
+[Service]
+User=viikko5
+Group=viikko5
+WorkingDirectory=/opt/viikko5/app
+EnvironmentFile=/etc/viikko5/env
+RuntimeDirectory=viikko5
+ExecStart=/opt/viikko5/venv/bin/gunicorn --workers 2 --bind unix:/run/viikko5/gunicorn.sock viikko5.app:app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
