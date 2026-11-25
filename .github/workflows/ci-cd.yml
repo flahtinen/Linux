@@ -50,7 +50,7 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
 
       - name: Transfer repository and run deployment
-        run: |
-          ssh -i ~/.ssh/id_ed25519 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}" "mkdir -p /tmp/viikko5-release"
-          scp -i ~/.ssh/id_ed25519 -r . "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/viikko5-release/"
-          ssh -i ~/.ssh/id_ed25519 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}" "cd /tmp/viikko5-release && chmod +x viikko5/deploy/deploy.sh && ./viikko5/deploy/deploy.sh ${{ github.sha }}"
+    run: |
+      ssh -i ~/.ssh/id_ed25519 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}" "rm -rf /tmp/viikko5-release && mkdir -p /tmp/viikko5-release"
+      scp -i ~/.ssh/id_ed25519 -r viikko5 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/tmp/viikko5-release/"
+      ssh -i ~/.ssh/id_ed25519 "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}" "cd /tmp/viikko5-release && chmod +x viikko5/deploy/deploy.sh && ./viikko5/deploy/deploy.sh ${{ github.sha }}"
