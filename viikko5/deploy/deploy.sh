@@ -58,4 +58,13 @@ sudo chown -R viikko5:viikko5 "$APP_DIR" "$VENV_DIR" /run/viikko5
 sudo systemctl restart viikko5.service
 sudo systemctl is-active --quiet viikko5.service
 
-curl -fsS "http://127.0.0.1/viikko5/health" | grep -q "$COMMIT_SHA"
+for i in $(seq 1 15); do
+  if [ -S /run/viikko5/gunicorn.sock ] && curl -fsS "http://127.0.0.1/viikko5/health" | grep -q "$COMMIT_SHA"; then
+    break
+  fi
+  if [ "$i" -eq 15 ]; then
+    echo "Health check failed after restart" >&2
+    exit 1
+  fi
+  sleep 1
+done
