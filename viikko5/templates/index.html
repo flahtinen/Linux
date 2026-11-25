@@ -50,7 +50,77 @@
       <h3>Mallivalinta ja resurssit</h3>
       <p>Malli <code>llama3.2:1b</code> valittiin cPouta-instanssin muisti- ja levytilan (<code>free -h</code>, <code>df -h</code>) perusteella. Koska Viikko 4:ssä on replikointi palvelimelle B, Viikko 5 deployataan palvelimelle A (<code>fanni</code>), jossa tietokanta on kirjoitettavissa.</p>
       <h3>Komentotulosteet ja testitulokset</h3>
-      <pre id="evidence-block">Lisää tähän ajamiesi komentojen tulosteet (ilman salaisuuksia) sekä testien ja uudelleenkäynnistyksen tulokset.</pre>
+      <pre id="evidence-block">Komentojen tulosteet (ilman salaisuuksia) sekä testien ja uudelleenkäynnistyksen tulokset:
+
+<h3>Pyyntöpolku</h3>
+  <p>Selain → Nginx (:80, <code>/viikko5/</code>) → Unix-soketti (<code>/run/viikko5/gunicorn.sock</code>) → Gunicorn / Flask (<code>viikko5.service</code>) → Ollama (<code>127.0.0.1:11434</code>) ja MariaDB (<code>viikko5_chat</code>).</p>
+
+  <h3>CI/CD-putki, käyttäjät, Nginx ja resurssit</h3>
+  <ul>
+    <li><strong>CI/CD:</strong> Pull requesteissa ajetaan testit; <code>main</code>-haarassa ajetaan testit ja <code>viikko5/deploy/deploy.sh</code>, joka kopioi koodin, käynnistää <code>viikko5.service</code>-palvelun uudelleen sekä varmistaa soketin ja <code>/viikko5/health</code>-päätepisteen (<code>COMMIT_SHA</code>).</li>
+    <li><strong>Käyttäjät, oikeudet ja salaisuudet:</strong> Linux-käyttäjät <code>ubuntu</code> ja <code>viikko5</code>; sovelluskansio <code>/opt/viikko5/app/viikko5</code> ja soketti <code>/run/viikko5/gunicorn.sock</code> omistuksessa <code>viikko5:viikko5</code>; MariaDB-käyttäjä <code>viikko5_user@localhost</code> oikeuksilla <code>viikko5_chat.*</code>. Salaisuudet säilytetään GitHub Secretsissä ja palvelimen ympäristössä (ei repositoriossa eikä dokumentaatiossa).</li>
+    <li><strong>Nginx:</strong> Erillinen <code>/viikko5/</code>-reititys ohjaa liikenteen Unix-soketille vaikuttamatta muihin sivuihin.</li>
+    <li><strong>Malli ja resurssit:</strong> <code>llama3.2:1b</code> (1.3 GB), 7.6 GiB RAM (6.9 GiB available), 2.0 GiB swap.</li>
+    <li><strong>Viikko 4 ja replikointi:</strong> Tietokanta <code>viikko5_chat</code> toimii paikallisesti <code>fanni</code>-palvelimella (ei replikoitu erilliselle B-palvelimelle).</li>
+    <li><strong>Testit ja opittu asia:</strong> Testit ja <code>/viikko5/health</code> läpi; ratkaistu <code>rsync</code>-komennon <code>--no-g --no-o</code> (<code>chgrp</code> / exit code 23) ja Gunicorn-soketin käynnistymisviiveen (<code>502</code>) odotussilmukka.</li>
+  </ul>
+
+  <h3>Komentotulosteet palvelimelta</h3>
+  <pre><code>$ systemctl show viikko5.service -p User -p Group
+User=viikko5
+Group=viikko5
+
+$ ls -la /opt/viikko5/app/viikko5 /run/viikko5/
+/opt/viikko5/app/viikko5:
+total 40
+drwxr-xr-x 7 viikko5 viikko5 4096 Nov 25 17:46 .
+drwxrwxr-x 3 viikko5 viikko5 4096 Nov 25 15:59 ..
+drwxr-xr-x 2 viikko5 viikko5 4096 Nov 25 17:46 __pycache__
+-rw-r--r-- 1 viikko5 viikko5 3161 Nov 25 17:46 app.py
+drwxr-xr-x 2 viikko5 viikko5 4096 Nov 25 17:46 deploy
+-rw-r--r-- 1 viikko5 viikko5   90 Nov 25 17:46 requirements.txt
+-rw-r--r-- 1 viikko5 viikko5  361 Nov 25 17:46 schema.sql
+drwxr-xr-x 2 viikko5 viikko5 4096 Nov 25 17:46 static
+drwxr-xr-x 2 viikko5 viikko5 4096 Nov 25 17:46 templates
+drwxr-xr-x 2 viikko5 viikko5 4096 Nov 25 17:46 tests
+
+/run/viikko5/:
+total 0
+drwxr-xr-x  2 viikko5 viikko5   60 Nov 25 17:46 .
+drwxr-xr-x 36 root    root    1000 Nov 25 17:46 ..
+srwxrwxrwx  1 viikko5 viikko5    0 Nov 25 17:46 gunicorn.sock
+
+$ ollama list
+NAME           ID              SIZE      MODIFIED
+llama3.2:1b    baf6a787fdff    1.3 GB    3 hours ago
+
+$ free -h
+               total        used        free      shared  buff/cache   available
+Mem:           7.6Gi       634Mi       5.3Gi       6.5Mi       1.9Gi       6.9Gi
+Swap:          2.0Gi          0B       2.0Gi
+
+$ sudo ss -ltnp
+State  Recv-Q Send-Q Local Address:Port      Peer Address:Port Process
+LISTEN 0      4096   127.0.0.54:53          0.0.0.0:*       users:(("systemd-resolve",pid=528,fd=19))
+LISTEN 0      4096   0.0.0.0:22             0.0.0.0:*       users:(("sshd",pid=963,fd=3),("systemd",pid=1,fd=277))
+LISTEN 0      511    0.0.0.0:80             0.0.0.0:*       users:(("nginx",pid=11432,fd=5),("nginx",pid=11431,fd=5),("nginx",pid=11430,fd=5),("nginx",pid=11428,fd=5),("nginx",pid=1054,fd=5))
+LISTEN 0      4096   127.0.0.53%lo:53       0.0.0.0:*       users:(("systemd-resolve",pid=528,fd=17))
+LISTEN 0      80     192.168.1.46:3306      0.0.0.0:*       users:(("mariadbd",pid=1122,fd=31))
+LISTEN 0      4096   127.0.0.1:11434      0.0.0.0:*       users:(("ollama",pid=923,fd=4))
+LISTEN 0      4096   [::]:22                [::]:*          users:(("sshd",pid=963,fd=4),("systemd",pid=1,fd=278))
+LISTEN 0      511    [::]:80                [::]:*          users:(("nginx",pid=11432,fd=6),("nginx",pid=11431,fd=6),("nginx",pid=11430,fd=6),("nginx",pid=11428,fd=6),("nginx",pid=1054,fd=6))
+
+$ sudo mysql -e "SHOW GRANTS FOR 'viikko5_user'@'localhost';"
++---------------------------------------------------------------------------------------------------+
+| Grants for viikko5_user@localhost                                                                 |
++---------------------------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO `viikko5_user`@`localhost` IDENTIFIED BY PASSWORD 'SENSUROITU'              |
+| GRANT ALL PRIVILEGES ON `viikko5_chat`.* TO `viikko5_user`@`localhost`                            |
++---------------------------------------------------------------------------------------------------+</code></pre>
+</section>
+
+
+</pre>
     </section>
   </main>
 
